@@ -41,10 +41,10 @@ my class CallFrame {
     }
 
     method line() {
-        %.annotations<line>;
+        %!annotations<line>;
     }
     method file() {
-        %.annotations<file>;
+        %!annotations<file>;
     }
 
     method callframe(Int $level = 0) {
