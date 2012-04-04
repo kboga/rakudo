@@ -1139,6 +1139,18 @@ class Perl6::Actions is HLL::Actions {
             $past.pasttype('callmethod');
             $past.name($desigilname);
             $past.unshift(PAST::Var.new( :name('self'), :scope('lexical_6model') ));
+            if $sigil eq '$' || $sigil eq '@' || $sigil eq '%' {
+                $past := PAST::Op.new(:node($/),
+                        $past,
+                        :pasttype('callmethod'),
+                        :name(
+                            $sigil eq '$' ?? 'item' !!
+                            $sigil eq '@' ?? 'list' !!
+                                             'hash'
+                        )
+                )
+            }
+
         }
         elsif $twigil eq '^' || $twigil eq ':' {
             $past := add_placeholder_parameter($/, $sigil, $desigilname,
