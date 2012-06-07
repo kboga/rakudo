@@ -2291,34 +2291,33 @@ grammar Perl6::Grammar is HLL::Grammar {
     }
 
     ## Operators
+    # TODO: constant
+    my %methodcall      := hash(:prec<y=>, :assoc<unary>);
+    my %autoincrement   := hash(:prec<x=>, :assoc<unary>);
+    my %exponentiation  := hash(:prec<w=>, :assoc<right>);
+    my %symbolic_unary  := hash(:prec<v=>, :assoc<unary>);
+    my %multiplicative  := hash(:prec<u=>, :assoc<left>);
+    my %additive        := hash(:prec<t=>, :assoc<left>);
+    my %replication     := hash(:prec<s=>, :assoc<left>);
+    my %concatenation   := hash(:prec<r=>, :assoc<left>);
+    my %junctive_and    := hash(:prec<q=>, :assoc<list>);
+    my %junctive_or     := hash(:prec<p=>, :assoc<list>);
+    my %named_unary     := hash(:prec<o=>, :assoc<unary>);
+    my %structural      := hash(:prec<n=>, :assoc<left>);
+    my %chaining        := hash(:prec<m=>, :assoc<left>, :iffy<1>, :pasttype<chain>);
+    my %tight_and       := hash(:prec<l=>, :assoc<left>);
+    my %tight_or        := hash(:prec<k=>, :assoc<list>);
+    my %conditional     := hash(:prec<j=>, :assoc<right>);
+    my %item_assignment := hash(:prec<i=>, :assoc<right>);
+    my %list_assignment := hash(:prec<i=>, :assoc<right>, :sub<e=>);
+    my %loose_unary     := hash(:prec<h=>, :assoc<unary>);
+    my %comma           := hash(:prec<g=>, :assoc<list>, :nextterm<nulltermish>);
+    my %list_infix      := hash(:prec<f=>, :assoc<list>);
+    my %list_prefix     := hash(:prec<e=>, :assoc<right>);
+    my %loose_and       := hash(:prec<d=>, :assoc<left>);
+    my %loose_or        := hash(:prec<c=>, :assoc<list>);
+    my %sequencer       := hash(:prec<b=>, :assoc<list>);
 
-    INIT {
-        Perl6::Grammar.O(':prec<y=>, :assoc<unary>', '%methodcall');
-        Perl6::Grammar.O(':prec<x=>, :assoc<unary>', '%autoincrement');
-        Perl6::Grammar.O(':prec<w=>, :assoc<right>', '%exponentiation');
-        Perl6::Grammar.O(':prec<v=>, :assoc<unary>', '%symbolic_unary');
-        Perl6::Grammar.O(':prec<u=>, :assoc<left>',  '%multiplicative');
-        Perl6::Grammar.O(':prec<t=>, :assoc<left>',  '%additive');
-        Perl6::Grammar.O(':prec<s=>, :assoc<left>',  '%replication');
-        Perl6::Grammar.O(':prec<r=>, :assoc<left>',  '%concatenation');
-        Perl6::Grammar.O(':prec<q=>, :assoc<list>', '%junctive_and');
-        Perl6::Grammar.O(':prec<p=>, :assoc<list>', '%junctive_or');
-        Perl6::Grammar.O(':prec<o=>, :assoc<unary>', '%named_unary');
-        Perl6::Grammar.O(':prec<n=>, :assoc<left>',  '%structural');
-        Perl6::Grammar.O(':prec<m=>, :assoc<left>, :iffy<1>, :pasttype<chain>',  '%chaining');
-        Perl6::Grammar.O(':prec<l=>, :assoc<left>',  '%tight_and');
-        Perl6::Grammar.O(':prec<k=>, :assoc<list>',  '%tight_or');
-        Perl6::Grammar.O(':prec<j=>, :assoc<right>', '%conditional');
-        Perl6::Grammar.O(':prec<i=>, :assoc<right>', '%item_assignment');
-        Perl6::Grammar.O(':prec<i=>, :assoc<right>, :sub<e=>', '%list_assignment');
-        Perl6::Grammar.O(':prec<h=>, :assoc<unary>', '%loose_unary');
-        Perl6::Grammar.O(':prec<g=>, :assoc<list>, :nextterm<nulltermish>',  '%comma');
-        Perl6::Grammar.O(':prec<f=>, :assoc<list>',  '%list_infix');
-        Perl6::Grammar.O(':prec<e=>, :assoc<right>', '%list_prefix');
-        Perl6::Grammar.O(':prec<d=>, :assoc<left>',  '%loose_and');
-        Perl6::Grammar.O(':prec<c=>, :assoc<list>',  '%loose_or');
-        Perl6::Grammar.O(':prec<b=>, :assoc<list>',  '%sequencer');
-    }
 
     token termish {
         :my $*SCOPE := "";
@@ -2463,12 +2462,12 @@ grammar Perl6::Grammar is HLL::Grammar {
     proto token dotty { <...> }
     token dotty:sym<.> {
         <sym> <dottyop>
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token dotty:sym<.*> {
         $<sym>=['.' [ <[+*?=]> | '^' '!'? ]] <dottyop>
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token dottyop {
@@ -2480,7 +2479,7 @@ grammar Perl6::Grammar is HLL::Grammar {
 
     token privop {
         '!' <methodop>
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token methodop {
@@ -2509,31 +2508,31 @@ grammar Perl6::Grammar is HLL::Grammar {
     token postcircumfix:sym<[ ]> {
         :my $*QSIGIL := '';
         '[' ~ ']' [ <.ws> <semilist> ]
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token postcircumfix:sym<{ }> {
         :my $*QSIGIL := '';
         '{' ~ '}' [ <.ws> <semilist> ]
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token postcircumfix:sym<ang> {
         <?[<]> <quote_EXPR: ':q', ':w'>
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
     token postcircumfix:sym<( )> {
         '(' ~ ')' [ <.ws> <arglist> ]
-        <O('%methodcall')>
+        <O(|%methodcall)>
     }
 
-    token postfix:sym<i>  { <sym> >> <O('%methodcall')> }
+    token postfix:sym<i>  { <sym> >> <O(|%methodcall)> }
 
-    token prefix:sym<++>  { <sym>  <O('%autoincrement')> }
-    token prefix:sym<-->  { <sym>  <O('%autoincrement')> }
-    token postfix:sym<++> { <sym>  <O('%autoincrement')> }
-    token postfix:sym<--> { <sym>  <O('%autoincrement')> }
+    token prefix:sym<++>  { <sym>  <O(|%autoincrement)> }
+    token prefix:sym<-->  { <sym>  <O(|%autoincrement)> }
+    token postfix:sym<++> { <sym>  <O(|%autoincrement)> }
+    token postfix:sym<--> { <sym>  <O(|%autoincrement)> }
 
     # TODO: report the correct bracket in error message
     token postfix:sym«->» {
@@ -2544,82 +2543,82 @@ grammar Perl6::Grammar is HLL::Grammar {
         ]
     }
 
-    token infix:sym<**>   { <sym>  <O('%exponentiation')> }
+    token infix:sym<**>   { <sym>  <O(|%exponentiation)> }
 
-    token prefix:sym<+>   { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<~>   { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<->   { <sym> <![>]> <O('%symbolic_unary')> }
-    token prefix:sym<?>   { <sym> <!before '??'> <O('%symbolic_unary')> }
-    token prefix:sym<!>   { <sym> <!before '!!'> <O('%symbolic_unary')> }
-    token prefix:sym<+^>  { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<~^>  { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<?^>  { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<^>   { <sym>  <O('%symbolic_unary')> }
-    token prefix:sym<|>   { <sym>  <O('%symbolic_unary')> }
+    token prefix:sym<+>   { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<~>   { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<->   { <sym> <![>]> <O(|%symbolic_unary)> }
+    token prefix:sym<?>   { <sym> <!before '??'> <O(|%symbolic_unary)> }
+    token prefix:sym<!>   { <sym> <!before '!!'> <O(|%symbolic_unary)> }
+    token prefix:sym<+^>  { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<~^>  { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<?^>  { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<^>   { <sym>  <O(|%symbolic_unary)> }
+    token prefix:sym<|>   { <sym>  <O(|%symbolic_unary)> }
 
-    token infix:sym<*>    { <sym>  <O('%multiplicative')> }
-    token infix:sym</>    { <sym>  <O('%multiplicative')> }
-    token infix:sym<div>  { <sym> >> <O('%multiplicative')> }
-    token infix:sym<gcd>  { <sym> >> <O('%multiplicative')> }
-    token infix:sym<lcm>  { <sym> >> <O('%multiplicative')> }
-    token infix:sym<%>    { <sym>  <O('%multiplicative')> }
-    token infix:sym<mod>  { <sym> >> <O('%multiplicative')> }
-    token infix:sym<%%>   { <sym>  <O('%multiplicative, :iffy<1>')> }
-    token infix:sym<+&>   { <sym>  <O('%multiplicative')> }
-    token infix:sym<~&>   { <sym>  <O('%multiplicative')> }
-    token infix:sym<?&>   { <sym>  <O('%multiplicative')> }
-    token infix:sym«+<»   { <sym> <!before '<'> <O('%multiplicative')> }
-    token infix:sym«+>»   { <sym> <!before '>'> <O('%multiplicative')> }
+    token infix:sym<*>    { <sym>  <O(|%multiplicative)> }
+    token infix:sym</>    { <sym>  <O(|%multiplicative)> }
+    token infix:sym<div>  { <sym> >> <O(|%multiplicative)> }
+    token infix:sym<gcd>  { <sym> >> <O(|%multiplicative)> }
+    token infix:sym<lcm>  { <sym> >> <O(|%multiplicative)> }
+    token infix:sym<%>    { <sym>  <O(|%multiplicative)> }
+    token infix:sym<mod>  { <sym> >> <O(|%multiplicative)> }
+    token infix:sym<%%>   { <sym>  <O(|hash(|%multiplicative, :iffy<1>))> }
+    token infix:sym<+&>   { <sym>  <O(|%multiplicative)> }
+    token infix:sym<~&>   { <sym>  <O(|%multiplicative)> }
+    token infix:sym<?&>   { <sym>  <O(|%multiplicative)> }
+    token infix:sym«+<»   { <sym> <!before '<'> <O(|%multiplicative)> }
+    token infix:sym«+>»   { <sym> <!before '>'> <O(|%multiplicative)> }
 
     token infix:sym«<<» { <sym> \s <.obs('<< to do left shift', '+< or ~<')> }
 
     token infix:sym«>>» { <sym> \s <.obs('>> to do right shift', '+> or ~>')> }
 
-    token infix:sym<+>    { <sym>  <O('%additive')> }
+    token infix:sym<+>    { <sym>  <O(|%additive)> }
     token infix:sym<->    {
        # We want to match in '$a >>->> $b' but not 'if $a -> { ... }'.
         <sym> [<?before '>>'> || <!before '>'>]
-        <O('%additive')>
+        <O(|%additive)>
     }
-    token infix:sym<+|>   { <sym>  <O('%additive')> }
-    token infix:sym<+^>   { <sym>  <O('%additive')> }
-    token infix:sym<~|>   { <sym>  <O('%additive')> }
-    token infix:sym<~^>   { <sym>  <O('%additive')> }
-    token infix:sym<?|>   { <sym>  <O('%additive')> }
-    token infix:sym<?^>   { <sym>  <O('%additive')> }
+    token infix:sym<+|>   { <sym>  <O(|%additive)> }
+    token infix:sym<+^>   { <sym>  <O(|%additive)> }
+    token infix:sym<~|>   { <sym>  <O(|%additive)> }
+    token infix:sym<~^>   { <sym>  <O(|%additive)> }
+    token infix:sym<?|>   { <sym>  <O(|%additive)> }
+    token infix:sym<?^>   { <sym>  <O(|%additive)> }
 
-    token infix:sym<x>    { <sym> >> <O('%replication')> }
-    token infix:sym<xx>    { <sym> >> <O('%replication')> }
+    token infix:sym<x>    { <sym> >> <O(|%replication)> }
+    token infix:sym<xx>    { <sym> >> <O(|%replication)> }
 
-    token infix:sym<~>    { <sym>  <O('%concatenation')> }
+    token infix:sym<~>    { <sym>  <O(|%concatenation)> }
 
-    token infix:sym<&>    { <sym> <O('%junctive_and')> }
-    token infix:sym<|>    { <sym> <O('%junctive_or')> }
-    token infix:sym<^>    { <sym> <O('%junctive_or')> }
+    token infix:sym<&>    { <sym> <O(|%junctive_and)> }
+    token infix:sym<|>    { <sym> <O(|%junctive_or)> }
+    token infix:sym<^>    { <sym> <O(|%junctive_or)> }
 
-    token prefix:sym<abs>  { <sym> » <O('%named_unary')> }
-    token prefix:sym<let>  { <sym> \s+ <!before '=>'> <O('%named_unary')> { $*W.give_cur_block_let($/) } }
-    token prefix:sym<temp> { <sym> \s+ <!before '=>'> <O('%named_unary')> { $*W.give_cur_block_temp($/) } }
+    token prefix:sym<abs>  { <sym> » <O(|%named_unary)> }
+    token prefix:sym<let>  { <sym> \s+ <!before '=>'> <O(|%named_unary)> { $*W.give_cur_block_let($/) } }
+    token prefix:sym<temp> { <sym> \s+ <!before '=>'> <O(|%named_unary)> { $*W.give_cur_block_temp($/) } }
 
-    token infix:sym«==»   { <sym>  <O('%chaining')> }
-    token infix:sym«!=»   { <sym> <?before \s|']'> <O('%chaining')> }
-    token infix:sym«<=»   { <sym>  <O('%chaining')> }
-    token infix:sym«>=»   { <sym>  <O('%chaining')> }
-    token infix:sym«<»    { <sym>  <O('%chaining')> }
-    token infix:sym«>»    { <sym>  <O('%chaining')> }
-    token infix:sym«eq»   { <sym> >> <O('%chaining')> }
-    token infix:sym«ne»   { <sym> >> <O('%chaining')> }
-    token infix:sym«le»   { <sym> >> <O('%chaining')> }
-    token infix:sym«ge»   { <sym> >> <O('%chaining')> }
-    token infix:sym«lt»   { <sym> >> <O('%chaining')> }
-    token infix:sym«gt»   { <sym> >> <O('%chaining')> }
-    token infix:sym«=:=»  { <sym>  <O('%chaining')> }
-    token infix:sym<===>  { <sym>  <O('%chaining')> }
-    token infix:sym<eqv>  { <sym> >> <O('%chaining')> }
-    token infix:sym<before>  { <sym> >> <O('%chaining')> }
-    token infix:sym<after>  { <sym>>>  <O('%chaining')> }
-    token infix:sym<~~>   { <sym>  <O('%chaining')> <!dumbsmart> }
-    token infix:sym<!~~>  { <sym>  <O('%chaining')> <!dumbsmart> }
+    token infix:sym«==»   { <sym>  <O(|%chaining)> }
+    token infix:sym«!=»   { <sym> <?before \s|']'> <O(|%chaining)> }
+    token infix:sym«<=»   { <sym>  <O(|%chaining)> }
+    token infix:sym«>=»   { <sym>  <O(|%chaining)> }
+    token infix:sym«<»    { <sym>  <O(|%chaining)> }
+    token infix:sym«>»    { <sym>  <O(|%chaining)> }
+    token infix:sym«eq»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«ne»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«le»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«ge»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«lt»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«gt»   { <sym> >> <O(|%chaining)> }
+    token infix:sym«=:=»  { <sym>  <O(|%chaining)> }
+    token infix:sym<===>  { <sym>  <O(|%chaining)> }
+    token infix:sym<eqv>  { <sym> >> <O(|%chaining)> }
+    token infix:sym<before>  { <sym> >> <O(|%chaining)> }
+    token infix:sym<after>  { <sym>>>  <O(|%chaining)> }
+    token infix:sym<~~>   { <sym>  <O(|%chaining)> <!dumbsmart> }
+    token infix:sym<!~~>  { <sym>  <O(|%chaining)> <!dumbsmart> }
 
     token dumbsmart {
         # should be
@@ -2629,13 +2628,13 @@ grammar Perl6::Grammar is HLL::Grammar {
         | <?before \h* [ 'Bool::'? 'False' && <.longname> ] > <.panic("Smartmatch against False always fails; if you mean to test the topic for truthiness, use :!so or *.not or !* instead")>
     }
 
-    token infix:sym<&&>   { <sym>  <O('%tight_and, :pasttype<if>')> }
+    token infix:sym<&&>   { <sym>  <O(|hash(|%tight_and, :pasttype<if>))> }
 
-    token infix:sym<||>   { <sym>  <O('%tight_or, :assoc<left>, :pasttype<unless>')> }
-    token infix:sym<^^>   { <sym>  <O('%tight_or, :pasttype<xor_nqp>')> }
-    token infix:sym<//>   { <sym>  <O('%tight_or, :assoc<left>, :pasttype<def_or>')> }
-    token infix:sym<min>  { <sym> >> <O('%tight_or')> }
-    token infix:sym<max>  { <sym> >> <O('%tight_or')> }
+    token infix:sym<||>   { <sym>  <O(|hash(|%tight_or, :assoc<left>, :pasttype<unless>))> }
+    token infix:sym<^^>   { <sym>  <O(|hash(|%tight_or, :pasttype<xor_nqp>))> }
+    token infix:sym<//>   { <sym>  <O(|hash(|%tight_or, :assoc<left>, :pasttype<def_or>))> }
+    token infix:sym<min>  { <sym> >> <O(|%tight_or)> }
+    token infix:sym<max>  { <sym> >> <O(|%tight_or)> }
 
     token infix:sym<?? !!> {
         '??'
@@ -2647,100 +2646,100 @@ grammar Perl6::Grammar is HLL::Grammar {
         || <?before \N*? [\n\N*?]?> '!!' <.panic("Bogus code found before the !!")>
         || <.panic("Found ?? but no !!")>
         ]
-        <O('%conditional, :reducecheck<ternary>, :pasttype<if>')>
+        <O(|hash(|%conditional, :reducecheck<ternary>, :pasttype<if>))>
     }
 
     token infix_prefix_meta_operator:sym<!> {
         <sym> <infixish> 
         [
-        || <?{ $<infixish>.Str eq '=' }> <O('%chaining')>
+        || <?{ $<infixish>.Str eq '=' }> <O(|%chaining)>
         || <?{ $<infixish><OPER><O><iffy> }> <O=.copyO($<infixish>)>
         || <.panic("Cannot negate " ~ $<infixish>.Str ~ " because it is not iffy enough")>
         ]
     }
     token infix_prefix_meta_operator:sym<R> { <sym> <infixish> {} <O=.copyO($<infixish>)> }
     token infix_prefix_meta_operator:sym<S> { <sym> <infixish> {} <O=.copyO($<infixish>)> }
-    token infix_prefix_meta_operator:sym<X> { <sym> <infixish> <O('%list_infix')> }
-    token infix_prefix_meta_operator:sym<Z> { <sym> <infixish> <O('%list_infix')> }
-    token infix:sym<minmax> { <sym> >> <O('%list_infix')> }
+    token infix_prefix_meta_operator:sym<X> { <sym> <infixish> <O(|%list_infix)> }
+    token infix_prefix_meta_operator:sym<Z> { <sym> <infixish> <O(|%list_infix)> }
+    token infix:sym<minmax> { <sym> >> <O(|%list_infix)> }
 
     token infix:sym<:=> {
-        <sym>  <O('%list_assignment')>
+        <sym>  <O(|%list_assignment)>
     }
 
     token infix:sym<::=> {
-        <sym>  <O('%item_assignment')>
+        <sym>  <O(|%item_assignment)>
     }
 
-    token infix:sym<.=> { <sym> <O('%item_assignment, :nextterm<dottyopish>')> }
+    token infix:sym<.=> { <sym> <O(|hash(|%item_assignment, :nextterm<dottyopish>))> }
 
     # Should probably have <!after '='> to agree w/spec, but after NYI.
     # Modified infix != below instead to prevent misparse
-    token infix_postfix_meta_operator:sym<=> { '=' <O('%item_assignment')> }
+    token infix_postfix_meta_operator:sym<=> { '=' <O(|%item_assignment)> }
 
-    token infix:sym«=>» { <sym> <O('%item_assignment')> }
+    token infix:sym«=>» { <sym> <O(|%item_assignment)> }
 
-    token prefix:sym<so> { <sym> >> <O('%loose_unary')> }
-    token prefix:sym<not>  { <sym> >> <O('%loose_unary')> }
+    token prefix:sym<so> { <sym> >> <O(|%loose_unary)> }
+    token prefix:sym<not>  { <sym> >> <O(|%loose_unary)> }
 
     token infix:sym<,>    {
-        <sym>  <O('%comma')>
+        <sym>  <O(|%comma)>
         # TODO: should be <.worry>, not <.panic>
         [ <?before \h*'...'> <.panic: "Comma found before apparent series operator; please remove comma (or put parens\n    around the ... listop, or use 'fail' instead of ...)"> ]?
     }
 
-    token infix:sym<Z>    { <!before <sym> <infixish> > <sym>  <O('%list_infix')> }
-    token infix:sym<X>    { <!before <sym> <infixish> > <sym>  <O('%list_infix')> }
+    token infix:sym<Z>    { <!before <sym> <infixish> > <sym>  <O(|%list_infix)> }
+    token infix:sym<X>    { <!before <sym> <infixish> > <sym>  <O(|%list_infix)> }
 
-    token infix:sym<...>  { <sym>  <O('%list_infix')> }
-    token infix:sym<...^> { <sym>  <O('%list_infix')> }
+    token infix:sym<...>  { <sym>  <O(|%list_infix)> }
+    token infix:sym<...^> { <sym>  <O(|%list_infix)> }
     # token term:sym<...>   { <sym> <args>? <O(|%list_prefix)> }
 
-    token infix:sym<?>    { <sym> {} <!before '?'> <?before <-[;]>*?':'> <.obs('?: for the conditional operator', '??!!')> <O('%conditional')> }
+    token infix:sym<?>    { <sym> {} <!before '?'> <?before <-[;]>*?':'> <.obs('?: for the conditional operator', '??!!')> <O(|%conditional)> }
 
-    token infix:sym<ff> { <sym> <O('%conditional')> }
-    token infix:sym<^ff> { <sym> <O('%conditional')> }
-    token infix:sym<ff^> { <sym> <O('%conditional')> }
-    token infix:sym<^ff^> { <sym> <O('%conditional')> }
+    token infix:sym<ff> { <sym> <O(|%conditional)> }
+    token infix:sym<^ff> { <sym> <O(|%conditional)> }
+    token infix:sym<ff^> { <sym> <O(|%conditional)> }
+    token infix:sym<^ff^> { <sym> <O(|%conditional)> }
     
-    token infix:sym<fff> { <sym> <O('%conditional')> }
-    token infix:sym<^fff> { <sym> <O('%conditional')> }
-    token infix:sym<fff^> { <sym> <O('%conditional')> }
-    token infix:sym<^fff^> { <sym> <O('%conditional')> }
+    token infix:sym<fff> { <sym> <O(|%conditional)> }
+    token infix:sym<^fff> { <sym> <O(|%conditional)> }
+    token infix:sym<fff^> { <sym> <O(|%conditional)> }
+    token infix:sym<^fff^> { <sym> <O(|%conditional)> }
 
     token infix:sym<=> {
         <sym>
         [
-        || <?{ $*LEFTSIGIL eq '$' }> <O('%item_assignment')>
-        || <O('%list_assignment')>
+        || <?{ $*LEFTSIGIL eq '$' }> <O(|%item_assignment)>
+        || <O(|%list_assignment)>
         ]
     }
 
-    token infix:sym<and>  { <sym> >> <O('%loose_and, :pasttype<if>')> }
+    token infix:sym<and>  { <sym> >> <O(|hash(|%loose_and, :pasttype<if>))> }
 
-    token infix:sym<or>   { <sym> >> <O('%loose_or, :assoc<left>, :pasttype<unless>')> }
-    token infix:sym<xor>  { <sym> >> <O('%loose_or, :pasttype<xor_nqp>')> }
-    token infix:sym<orelse> { <sym> >> <O('%loose_or, :assoc<left>, :pasttype<def_or>')> }
+    token infix:sym<or>   { <sym> >> <O(|hash(|%loose_or, :assoc<left>, :pasttype<unless>))> }
+    token infix:sym<xor>  { <sym> >> <O(|hash(|%loose_or, :pasttype<xor_nqp>))> }
+    token infix:sym<orelse> { <sym> >> <O(|hash(|%loose_or, :assoc<left>, :pasttype<def_or>))> }
 
-    token infix:sym«<==»  { <sym> <O('%sequencer')> }
-    token infix:sym«==>»  { <sym> <O('%sequencer')> }
-    token infix:sym«<<==» { <sym> <O('%sequencer')> }
-    token infix:sym«==>>» { <sym> <O('%sequencer')> }
+    token infix:sym«<==»  { <sym> <O(|%sequencer)> }
+    token infix:sym«==>»  { <sym> <O(|%sequencer)> }
+    token infix:sym«<<==» { <sym> <O(|%sequencer)> }
+    token infix:sym«==>>» { <sym> <O(|%sequencer)> }
 
-    token infix:sym<..>   { <sym> <O('%structural')> }
-    token infix:sym<^..>  { <sym> <O('%structural')> }
-    token infix:sym<..^>  { <sym> <O('%structural')> }
-    token infix:sym<^..^> { <sym> <O('%structural')> }
+    token infix:sym<..>   { <sym> <O(|%structural)> }
+    token infix:sym<^..>  { <sym> <O(|%structural)> }
+    token infix:sym<..^>  { <sym> <O(|%structural)> }
+    token infix:sym<^..^> { <sym> <O(|%structural)> }
 
-    token infix:sym<leg>  { <sym> >> <O('%structural')> }
-    token infix:sym<cmp>  { <sym> >> <O('%structural')> }
-    token infix:sym«<=>»  { <sym> <O('%structural')> }
+    token infix:sym<leg>  { <sym> >> <O(|%structural)> }
+    token infix:sym<cmp>  { <sym> >> <O(|%structural)> }
+    token infix:sym«<=>»  { <sym> <O(|%structural)> }
 
-    token infix:sym<but>  { <sym> >> <O('%structural')> }
-    token infix:sym<does> { <sym> >> <O('%structural')> }
+    token infix:sym<but>  { <sym> >> <O(|%structural)> }
+    token infix:sym<does> { <sym> >> <O(|%structural)> }
 
-    token infix:sym<!~> { <sym> \s <.obs('!~ to do negated pattern matching', '!~~')> <O('%chaining')> }
-    token infix:sym<=~> { <sym> <.obs('=~ to do pattern matching', '~~')> <O('%chaining')> }
+    token infix:sym<!~> { <sym> \s <.obs('!~ to do negated pattern matching', '!~~')> <O(|%chaining)> }
+    token infix:sym<=~> { <sym> <.obs('=~ to do pattern matching', '~~')> <O(|%chaining)> }
 
     method add_variable($name) {
         my $categorical := $name ~~ /^'&'((\w+)':<'\s*(\S+?)\s*'>')$/;
@@ -2758,15 +2757,15 @@ grammar Perl6::Grammar is HLL::Grammar {
         my $prec;
         my $is_oper;
         if $category eq 'infix' {
-            $prec := '%additive';
+            $prec := %additive;
             $is_oper := 1;
         }
         elsif $category eq 'prefix' {
-            $prec := '%symbolic_unary';
+            $prec := %symbolic_unary;
             $is_oper := 1;
         }
         elsif $category eq 'postfix' {
-            $prec := '%autoincrement';
+            $prec := %autoincrement;
             $is_oper := 1;
         }
         elsif $category eq 'circumfix' {
@@ -2788,7 +2787,7 @@ grammar Perl6::Grammar is HLL::Grammar {
             :rxtype('concat')
         );
         if $is_oper {
-            # For operator, it's just like 'op' <O('%prec')>
+            # For operator, it's just like 'op' <O(|%prec)>
             $parse.push(QAST::Regex.new(
                 :rxtype('subcapture'),
                 :name('sym'),
